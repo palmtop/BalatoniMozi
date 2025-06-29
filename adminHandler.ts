@@ -1,34 +1,33 @@
 import { Database } from 'sqlite3';
-import * as dotenv from 'dotenv';
+import { Request, Response } from 'express';
 
-dotenv.config();
-
-const apiKey = process.env.TMDB_API_KEY;
-
-if (!apiKey) {
-  throw new Error('TMDB_API_KEY is not defined in the .env file');
+interface MovieScheduleEntry {
+  title: string;
+  tmdb_id?: number; // tmdb_id is optional as it might not be present
 }
 
-const tmdb = new TMDB(apiKey);
+export async function adminHandler(req: Request, res: Response, db: Database) {
+  try {
+    debugger;
+    const movies = await getMoviesFromSchedule(db);
+    res.render('admin', { movies });
+  } catch (err) {
+    console.error('Error fetching movie schedule:', err);
+    res.status(500).send('Error loading admin page');
+  }
+}
 
-export async function getMovieNamesFromDb(db: Database): Promise<string[]> {
+async function getMoviesFromSchedule(db: Database): Promise<MovieScheduleEntry[]> {
   return new Promise((resolve, reject) => {
-    db.all('SELECT title FROM movies', (err, rows: { title: string }[]) => {
+    const query = 'SELECT ms.movie, m.tmdb_id FROM movie_schedule ms LEFT JOIN movies m ON ms.movie = m.name GROUP BY ms.movie';
+
+
+    db.all(query, [], (err, rows: MovieScheduleEntry[]) => {
       if (err) {
         reject(err);
       } else {
-        resolve(rows.map(row => row.title));
+        resolve(rows);
       }
     });
-  });
-}
-
-export async function searchMovieOnTMDB(movieName: string) {
-  try {
-    const response = await tmdb.search.movies(movieName);
-    return response.results; // Returns an array of movie results
-  } catch (error) {
-    console.error(`Error searching for movie "${movieName}" on TMDb:`, error);
-    return [];
-  }
-}
+  })
+};

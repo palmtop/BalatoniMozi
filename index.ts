@@ -1,14 +1,17 @@
 import * as express from "express";
 import * as path from "path";
 import * as sqlite3 from "sqlite3";
+import {adminHandler} from "./adminHandler";
+import { searchMovie } from "./fetchMovieData";
 
-import { getMovieNamesFromDb, searchMovieOnTMDb } from './adminHandler';
 const app = express();
 const port = parseInt(process.env.PORT) || process.argv[3] || 9002;
 
 app.use(express.static(path.join(__dirname, 'public')))
   .set('views', path.join(__dirname, 'views'))
   .set('view engine', 'ejs');
+
+console.log(path.join(__dirname, 'public') );
  
 app.get('/', (req, res) => {
   const today = new Date();
@@ -79,41 +82,28 @@ app.get('/movie/:movieName', (req, res) => {
 
 app.get('/admin', async (req, res) => {
   try {
-    const movieNames = await adminHandler.getMovieNamesFromDb(db);
-    const movieData = [];
-
-    for (const movieName of movieNames) {
-      const searchResults = await adminHandler.searchMovieOnTMDb(movieName);
-
-      if (searchResults && searchResults.length > 0) {
-        const firstResult = searchResults[0];
-        try {
-          const movieDetails = await tmdb.movies.details(firstResult.id);
-          movieData.push({
-            title: movieDetails.title,
-            poster_path: movieDetails.poster_path,
-            genres: movieDetails.genres.map(genre => genre.name).join(', '),
-            overview: movieDetails.overview,
-            vote_average: movieDetails.vote_average,
-          });
-        } catch (detailsError) {
-          console.error(`Error fetching details for movie ID ${firstResult.id}:`, detailsError);
-          // Optionally push partial data or a placeholder
-          movieData.push({ title: movieName, error: 'Could not fetch details from TMDb' });
-        }
-      } else {
-        console.warn(`No results found on TMDb for movie: ${movieName}`);
-        movieData.push({ title: movieName, error: 'No results found on TMDb' });
-      }
-    }
-
-    res.render('admin', { movies: movieData });
+    adminHandler(req, res, db);
 
   } catch (error) {
     console.error('Error in admin route:', error);
     res.status(500).send('An error occurred loading the admin page.');
   }
 });
+
+app.get('/fetchMovie/:movieId/:movieTitle', async (req, res) => {
+  const movieId = req.params.movieId;
+  const movieTitle = req.params.movieTitle;
+
+  try {
+    const results = await searchMovie(movieTitle);
+    console.log(results);
+ res.render('searchResults', { movies: results, movieTitle: movieTitle });
+  } catch (error) {
+    console.error('Error fetching movie data:', error);
+    res.status(500).send('Error fetching movie data');
+  }
+});
+
 
 
 app.listen(port, () => {

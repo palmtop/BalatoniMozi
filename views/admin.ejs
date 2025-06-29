@@ -1,24 +1,47 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Page</title>
+    <title>Movie Data Download</title>
     <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-    <h1>Movie Metadata Download</h1>
+    <div class="container">
+        <h1>Movie Data Download</h1>
 
-    <p>This is the administrative page for downloading movie metadata.</p>
-
-    <% if (messages) { %>
-        <div class="messages">
-            <% messages.forEach(function(message) { %>
-                <p><%= message %></p>
-            <% }); %>
-        </div>
-    <% } %>
-
+        <h2>Movies</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>TMDB ID</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% movies.forEach(movie => { %>
+                    <tr>
+                        <td><%= movie.movie %></td>
+                        <td><%= movie.tmdb_id %></td>
+                        <td>
+                            <button class="fetch-data-button" data-movie-id="<%= movie.movie %>">Fetch Data</button>
+                        </td>
+                    </tr>
+                <% }); %>
+            </tbody>
+        </table>
     </div>
+
+    <!-- Add this modal structure at the end of your admin.ejs body -->
+    <div id="fetchDataModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Fetch Movie Data</h2>
+            <input type="text" id="movieTitleInput" placeholder="Enter movie title" class="modal-input">
+            <button id="searchMovieButton">Search</button>
+            <button id="cancelFetchButton">Cancel</button>
+        </div>
+    </div>
+
+    <script src="/adminScript.js"></script>
 </body>
 </html>
