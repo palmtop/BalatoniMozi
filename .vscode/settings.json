@@ -1,0 +1,10 @@
+{
+    "IDX.aI.enableInlineCompletion": true,
+    "IDX.aI.enableCodebaseIndexing": true,
+    "python.analysis.extraPaths": [
+        "./.venv/lib/python3.10/site-packages"
+    ],
+    "python.analysis.typeshedPaths": [
+        "./.venv/lib/python3.10/site-packages/typeshed"
+    ]
+}

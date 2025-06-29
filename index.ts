@@ -1,0 +1,126 @@
+import * as express from "express";
+import * as path from "path";
+import * as sqlite3 from "sqlite3";
+
+import { getMovieNamesFromDb, searchMovieOnTMDb } from './adminHandler';
+const app = express();
+const port = parseInt(process.env.PORT) || process.argv[3] || 9002;
+
+app.use(express.static(path.join(__dirname, 'public')))
+  .set('views', path.join(__dirname, 'views'))
+  .set('view engine', 'ejs');
+ 
+app.get('/', (req, res) => {
+  const today = new Date();
+  const twoWeeksLater = new Date();
+  twoWeeksLater.setDate(today.getDate() + 14);
+
+  const formatDate = (date: Date) => {
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const todayFormatted = formatDate(today);
+  const twoWeeksLaterFormatted = formatDate(twoWeeksLater);
+
+  type MovieRow = {
+    date: string;
+    theater: string;
+    movie: string;
+  };
+  console.log(todayFormatted);
+  console.log(twoWeeksLaterFormatted);
+
+  const sql = `SELECT date, theater, movie FROM movie_schedule WHERE date BETWEEN ? AND ? ORDER BY date`;
+  db.all(sql, [todayFormatted, twoWeeksLaterFormatted], (err, rows: MovieRow[]) => {
+    if (err) {
+      console.error(err.message);
+      res.status(500).send('Error retrieving movie schedule');
+      return;
+    }
+
+    const moviesByDate: { [key: string]: { theater: string, movie: string }[] } = {};
+    rows.forEach((row) => {
+      if (!moviesByDate[row.date]) {
+        moviesByDate[row.date] = [];
+      }
+      moviesByDate[row.date].push({ theater: row.theater, movie: row.movie });
+    });
+    res.render('index', { moviesByDate });
+  });
+});
+
+app.get('/api', (req, res) => {
+  console.log("Hello world");
+  res.json({"msg": "Hello world1"});
+});
+
+app.get('/movie/:movieName', (req, res) => {
+  const movieName = req.params.movieName;
+  const sql = `SELECT date, theater FROM movie_schedule WHERE movie = ? ORDER BY date`;
+
+  type MovieScheduleRow = {
+    date: string;
+    theater: string;
+  };
+
+  db.all(sql, [movieName], (err, rows: MovieScheduleRow[]) => {
+    if (err) {
+      console.error(err.message);
+      res.status(500).send('Error retrieving movie schedule for the movie');
+      return;
+    }
+    console.log(movieName,rows);
+    res.render('movie', { movieName, schedule: rows });
+  });
+});
+
+app.get('/admin', async (req, res) => {
+  try {
+    const movieNames = await adminHandler.getMovieNamesFromDb(db);
+    const movieData = [];
+
+    for (const movieName of movieNames) {
+      const searchResults = await adminHandler.searchMovieOnTMDb(movieName);
+
+      if (searchResults && searchResults.length > 0) {
+        const firstResult = searchResults[0];
+        try {
+          const movieDetails = await tmdb.movies.details(firstResult.id);
+          movieData.push({
+            title: movieDetails.title,
+            poster_path: movieDetails.poster_path,
+            genres: movieDetails.genres.map(genre => genre.name).join(', '),
+            overview: movieDetails.overview,
+            vote_average: movieDetails.vote_average,
+          });
+        } catch (detailsError) {
+          console.error(`Error fetching details for movie ID ${firstResult.id}:`, detailsError);
+          // Optionally push partial data or a placeholder
+          movieData.push({ title: movieName, error: 'Could not fetch details from TMDb' });
+        }
+      } else {
+        console.warn(`No results found on TMDb for movie: ${movieName}`);
+        movieData.push({ title: movieName, error: 'No results found on TMDb' });
+      }
+    }
+
+    res.render('admin', { movies: movieData });
+
+  } catch (error) {
+    console.error('Error in admin route:', error);
+    res.status(500).send('An error occurred loading the admin page.');
+  }
+});
+
+
+app.listen(port, () => {
+  console.log(`Listening on http://localhost:${port}`);
+});
+
+const db = new sqlite3.Database('./mozi.sqlite', sqlite3.OPEN_READONLY, (err) => {
+  if (err) { console.error(err.message); }
+  console.log('Connected to the mozi database.');
+});

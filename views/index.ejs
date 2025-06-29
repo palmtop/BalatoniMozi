@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kertmozi Program - Balaton</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 1rem;
+      background: #eef2f5;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+    .card {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+    .card h2 {
+      font-size: 1.2rem;
+      margin-top: 0;
+      color: #0077aa;
+    }
+    .card ul {
+      list-style: none;
+      padding-left: 0;
+    }
+    .card li {
+      padding: 0.2rem 0;
+    }
+  </style>
+</head>
+<body>  
+  <h1>Balaton Kertmozi Program - 2025</h1>
+  <p><a href="/admin">Admin Page</a></p>
+  <% Object.keys(moviesByDate).sort().forEach(date => { %>
+    <div class="card">
+      <h2><%= date %></h2>
+      <ul>
+        <% moviesByDate[date].forEach(movie => { %>
+          <li><strong><%= movie.theater %>:</strong> <a href="/movie/<%= encodeURIComponent(movie.movie) %>"><%= movie.movie %></a></li>
+        <% }); %>
+      </ul>
+    </div>
+  <% }); %>
+</body>
+</html>
