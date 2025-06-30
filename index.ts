@@ -1,8 +1,9 @@
 import * as express from "express";
 import * as path from "path";
 import * as sqlite3 from "sqlite3";
-import {adminHandler} from "./adminHandler";
-import { searchMovie } from "./fetchMovieData";
+import { adminHandler } from "./adminHandler";
+import { searchMovie, getGenreNames, init, extMovie } from "./fetchMovieData";
+import { get } from "https";
 
 const app = express();
 const port = parseInt(process.env.PORT) || process.argv[3] || 9002;
@@ -11,8 +12,8 @@ app.use(express.static(path.join(__dirname, 'public')))
   .set('views', path.join(__dirname, 'views'))
   .set('view engine', 'ejs');
 
-console.log(path.join(__dirname, 'public') );
- 
+console.log(path.join(__dirname, 'public'));
+
 app.get('/', (req, res) => {
   const today = new Date();
   const twoWeeksLater = new Date();
@@ -57,7 +58,7 @@ app.get('/', (req, res) => {
 
 app.get('/api', (req, res) => {
   console.log("Hello world");
-  res.json({"msg": "Hello world1"});
+  res.json({ "msg": "Hello world1" });
 });
 
 app.get('/movie/:movieName', (req, res) => {
@@ -75,7 +76,7 @@ app.get('/movie/:movieName', (req, res) => {
       res.status(500).send('Error retrieving movie schedule for the movie');
       return;
     }
-    console.log(movieName,rows);
+    console.log(movieName, rows);
     res.render('movie', { movieName, schedule: rows });
   });
 });
@@ -96,8 +97,13 @@ app.get('/fetchMovie/:movieId/:movieTitle', async (req, res) => {
 
   try {
     const results = await searchMovie(movieTitle);
-    console.log(results);
- res.render('searchResults', { movies: results, movieTitle: movieTitle });
+    // add the genreStr to the results
+    const movies : extMovie[] =  results.map(item => ({
+      ...item,          // spread all original properties
+      genreStr: getGenreNames(item.genre_ids)          // add the new field with a value
+    }));
+    console.log(movies);
+    res.render('searchResults', { movies: movies, movieTitle: movieTitle });
   } catch (error) {
     console.error('Error fetching movie data:', error);
     res.status(500).send('Error fetching movie data');
@@ -114,3 +120,7 @@ const db = new sqlite3.Database('./mozi.sqlite', sqlite3.OPEN_READONLY, (err) =>
   if (err) { console.error(err.message); }
   console.log('Connected to the mozi database.');
 });
+
+init();
+console.log('fetchMovieData initialized.');
+

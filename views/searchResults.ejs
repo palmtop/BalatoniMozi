@@ -1,4 +1,3 @@
-ejs
 <!DOCTYPE html>
 <html>
 <head>
@@ -9,7 +8,7 @@ ejs
     <% if (movies && movies.length > 0) { %>
         <ul>
             <% movies.forEach(function(movie) { %>
-                        <%= movie.title %> <%=  movie.release_date.substring(0,4) %> <br/>
+                        <%= movie.title %> <%= movie.genreStr%> (<%=  movie.release_date.substring(0,4) %>) <br/>
  
             <% }); %>
         </ul>
