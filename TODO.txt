@@ -1,0 +1,4 @@
+Kiválasztott film elmentése
+Admin felület ne kerüljön bele a production-ba
+Oldalak kinézetét még kell kicsit tuningolni
+Release date-ban van a korhatár, azt is le kell tölteni

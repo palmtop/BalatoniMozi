@@ -3,7 +3,7 @@ import * as path from "path";
 import * as sqlite3 from "sqlite3";
 import { adminHandler } from "./adminHandler";
 import { searchMovie, getGenreNames, init, extMovie } from "./fetchMovieData";
-import { get } from "https";
+import { fetchMovieById } from './fetchMovieData';
 
 const app = express();
 const port = parseInt(process.env.PORT) || process.argv[3] || 9002;
@@ -12,6 +12,7 @@ app.use(express.static(path.join(__dirname, 'public')))
   .set('views', path.join(__dirname, 'views'))
   .set('view engine', 'ejs');
 
+app.use(express.json()); // Add this line to parse JSON request bodies
 console.log(path.join(__dirname, 'public'));
 
 app.get('/', (req, res) => {
@@ -110,6 +111,35 @@ app.get('/fetchMovie/:movieId/:movieTitle', async (req, res) => {
   }
 });
 
+app.post('/saveMovie', async (req, res) => {
+  const tmdb_id = req.body.tmdb_id;
+
+  if (!tmdb_id) {
+    return res.status(400).send('Missing tmdb_id in request body');
+  }
+
+  try {
+    const movieDetails = await fetchMovieById(tmdb_id);
+
+    if (!movieDetails) {
+      return res.status(404).send('Movie not found on TMDb');
+    }
+
+    const insertSql = `INSERT INTO movies (tmdb_id, title, overview, release_date, poster_path, genres) VALUES (?, ?, ?, ?, ?, ?)`;
+    const genresString = movieDetails.genres.map(genre => genre.name).join(',');
+
+    db.run(insertSql, [movieDetails.id, movieDetails.title, movieDetails.overview, movieDetails.release_date, movieDetails.poster_path, genresString], function(err) {
+      if (err) {
+        console.error('Error saving movie to database:', err.message);
+        return res.status(500).send('Error saving movie to database');
+      }
+      res.status(200).send(`Movie with TMDb ID ${tmdb_id} saved successfully with ID ${this.lastID}`);
+    });
+  } catch (error) {
+    console.error('Error fetching or saving movie:', error);
+    res.status(500).send('An error occurred while fetching or saving the movie');
+  }
+});
 
 
 app.listen(port, () => {
