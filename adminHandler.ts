@@ -8,7 +8,6 @@ interface MovieScheduleEntry {
 
 export async function adminHandler(req: Request, res: Response, db: Database) {
   try {
-    debugger;
     const movies = await getMoviesFromSchedule(db);
     res.render('admin', { movies });
   } catch (err) {

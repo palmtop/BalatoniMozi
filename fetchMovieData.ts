@@ -17,13 +17,29 @@ export function init() {
 
 
 // Use the 'details' method to fetch movie details by ID
-async function getMovieDetails(movieId: number) {
+export async function getMovieDetails(movieId: number) {
   try {
-    const movie = await tmdb.movies.details(movieId);
+    const movie = await tmdb.movies.details(movieId, [],  "hu-HU" );
+    return movie;
     console.log(`Movie Title: ${movie.title}`);
     console.log(`Release Date: ${movie.release_date}`);
   } catch (error) {
     console.error('Error fetching movie details:', error);
+    return null;
+  }
+}
+
+export async function getRating(movieId: number) {
+  try {
+    const releaseDates = await tmdb.movies.releaseDates(movieId);
+    const huRelease = releaseDates.results.find(r => r.iso_3166_1 === 'HU');
+    if (huRelease && huRelease.release_dates.length > 0) {
+      return huRelease.release_dates[0].certification;
+    }
+    return "---";
+  } catch (error) {
+    console.error('Error fetching genre list:', error);
+    return {};
   }
 }
 
@@ -49,6 +65,8 @@ async function getGenreList() {
     return {};
   }
 }
+
+
 
 
 export function getGenreNames(genreIds: number[]): string {

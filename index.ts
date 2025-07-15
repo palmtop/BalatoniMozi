@@ -3,6 +3,7 @@ import * as path from "path";
 import * as sqlite3 from "sqlite3";
 import { adminHandler } from "./adminHandler";
 import { searchMovie, getGenreNames, init, extMovie } from "./fetchMovieData";
+import { saveMovie } from "./saveMovie";
 
 const app = express();
 const port = parseInt(process.env.PORT) || process.argv[3] || 9002;
@@ -112,9 +113,17 @@ app.get('/fetchMovie/:movieId/:movieTitle', async (req, res) => {
 
 app.post('/saveMovie', async (req, res) => {
   const tmdb_id = req.body.tmdb_id;
+  const movie_title = req.body.movie_title;
 
   if (!tmdb_id) {
     return res.status(400).send('Missing tmdb_id in request body');
+  }
+
+  try {
+    await saveMovie(tmdb_id, movie_title, db, res);
+  } catch (error) {
+    console.error('Error in saveMovie:', error);
+    res.status(500).send('An error occurred while saving the movie');
   }
 
  /*  try {
@@ -145,7 +154,7 @@ app.listen(port, () => {
   console.log(`Listening on http://localhost:${port}`);
 });
 
-const db = new sqlite3.Database('./mozi.sqlite', sqlite3.OPEN_READONLY, (err) => {
+const db = new sqlite3.Database('./mozi.sqlite', sqlite3.OPEN_READWRITE, (err) => {
   if (err) { console.error(err.message); }
   console.log('Connected to the mozi database.');
 });

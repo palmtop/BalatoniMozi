@@ -1,11 +1,11 @@
-async function selectMovie(tmdb_id) {
+async function selectMovie(tmdb_id,movie_title) {
   try {
     const response = await fetch('/saveMovie', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ tmdb_id: tmdb_id })
+      body: JSON.stringify({ tmdb_id: tmdb_id, movie_title: movie_title })
     });
 
     if (response.ok) {
