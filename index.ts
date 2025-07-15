@@ -3,7 +3,6 @@ import * as path from "path";
 import * as sqlite3 from "sqlite3";
 import { adminHandler } from "./adminHandler";
 import { searchMovie, getGenreNames, init, extMovie } from "./fetchMovieData";
-import { fetchMovieById } from './fetchMovieData';
 
 const app = express();
 const port = parseInt(process.env.PORT) || process.argv[3] || 9002;
@@ -118,8 +117,8 @@ app.post('/saveMovie', async (req, res) => {
     return res.status(400).send('Missing tmdb_id in request body');
   }
 
-  try {
-    const movieDetails = await fetchMovieById(tmdb_id);
+ /*  try {
+    const movieDetails = await searchMovie(tmdb_id);
 
     if (!movieDetails) {
       return res.status(404).send('Movie not found on TMDb');
@@ -138,7 +137,7 @@ app.post('/saveMovie', async (req, res) => {
   } catch (error) {
     console.error('Error fetching or saving movie:', error);
     res.status(500).send('An error occurred while fetching or saving the movie');
-  }
+  } */
 });
 
 

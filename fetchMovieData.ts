@@ -60,7 +60,7 @@ export function getGenreNames(genreIds: number[]): string {
 
 
 // Example: Search for movies with the title "Inception"
-searchMovie("Így neveld a sárkányodat");
+//searchMovie("Így neveld a sárkányodat");
 
 
 // Example: Get details for the movie Inception (TMDb ID: 27205)
