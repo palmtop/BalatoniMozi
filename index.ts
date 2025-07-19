@@ -64,22 +64,40 @@ app.get('/api', (req, res) => {
 
 app.get('/movie/:movieName', (req, res) => {
   const movieName = req.params.movieName;
-  const sql = `SELECT date, theater FROM movie_schedule WHERE movie = ? ORDER BY date`;
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = (today.getMonth() + 1).toString().padStart(2, '0');
+  const day = today.getDate().toString().padStart(2, '0');
+  const todayFormatted = `${year}-${month}-${day}`;
+
+  const sql = `SELECT date, theater FROM movie_schedule WHERE movie = ? AND date >= ? ORDER BY date`;
 
   type MovieScheduleRow = {
     date: string;
     theater: string;
   };
 
-  db.all(sql, [movieName], (err, rows: MovieScheduleRow[]) => {
+  const movieSql = `SELECT * FROM movies WHERE name = ? LIMIT 1`;
+  db.get(movieSql, [movieName], (err, movieRow) => {
     if (err) {
       console.error(err.message);
-      res.status(500).send('Error retrieving movie schedule for the movie');
+      res.status(500).send('Error retrieving movie details');
       return;
     }
-    console.log(movieName, rows);
-    res.render('movie', { movieName, schedule: rows });
+    // movieRow will be undefined if not found
+    res.locals.movieDetails = movieRow || null;
+    db.all(sql, [movieName, todayFormatted], (err, rows: MovieScheduleRow[]) => {
+      if (err) {
+        console.error(err.message);
+        res.status(500).send('Error retrieving movie schedule for the movie');
+        return;
+      }
+      console.log(movieName, rows);
+      res.render('movie', { movieName, schedule: rows, MovieDetails: res.locals.movieDetails});
+    });
   });
+
+
 });
 
 app.get('/admin', async (req, res) => {
@@ -99,12 +117,12 @@ app.get('/fetchMovie/:movieId/:movieTitle', async (req, res) => {
   try {
     const results = await searchMovie(movieTitle);
     // add the genreStr to the results
-    const movies : extMovie[] =  results.map(item => ({
+    const movies: extMovie[] = results.map(item => ({
       ...item,          // spread all original properties
       genreStr: getGenreNames(item.genre_ids)          // add the new field with a value
     }));
     console.log(movies);
-    res.render('searchResults', { movies: movies, movieTitle: movieTitle });
+    res.render('searchResults', { movies: movies, movieId: movieId });
   } catch (error) {
     console.error('Error fetching movie data:', error);
     res.status(500).send('Error fetching movie data');
@@ -126,27 +144,27 @@ app.post('/saveMovie', async (req, res) => {
     res.status(500).send('An error occurred while saving the movie');
   }
 
- /*  try {
-    const movieDetails = await searchMovie(tmdb_id);
-
-    if (!movieDetails) {
-      return res.status(404).send('Movie not found on TMDb');
-    }
-
-    const insertSql = `INSERT INTO movies (tmdb_id, title, overview, release_date, poster_path, genres) VALUES (?, ?, ?, ?, ?, ?)`;
-    const genresString = movieDetails.genres.map(genre => genre.name).join(',');
-
-    db.run(insertSql, [movieDetails.id, movieDetails.title, movieDetails.overview, movieDetails.release_date, movieDetails.poster_path, genresString], function(err) {
-      if (err) {
-        console.error('Error saving movie to database:', err.message);
-        return res.status(500).send('Error saving movie to database');
-      }
-      res.status(200).send(`Movie with TMDb ID ${tmdb_id} saved successfully with ID ${this.lastID}`);
-    });
-  } catch (error) {
-    console.error('Error fetching or saving movie:', error);
-    res.status(500).send('An error occurred while fetching or saving the movie');
-  } */
+  /*  try {
+     const movieDetails = await searchMovie(tmdb_id);
+ 
+     if (!movieDetails) {
+       return res.status(404).send('Movie not found on TMDb');
+     }
+ 
+     const insertSql = `INSERT INTO movies (tmdb_id, title, overview, release_date, poster_path, genres) VALUES (?, ?, ?, ?, ?, ?)`;
+     const genresString = movieDetails.genres.map(genre => genre.name).join(',');
+ 
+     db.run(insertSql, [movieDetails.id, movieDetails.title, movieDetails.overview, movieDetails.release_date, movieDetails.poster_path, genresString], function(err) {
+       if (err) {
+         console.error('Error saving movie to database:', err.message);
+         return res.status(500).send('Error saving movie to database');
+       }
+       res.status(200).send(`Movie with TMDb ID ${tmdb_id} saved successfully with ID ${this.lastID}`);
+     });
+   } catch (error) {
+     console.error('Error fetching or saving movie:', error);
+     res.status(500).send('An error occurred while fetching or saving the movie');
+   } */
 });
 
 

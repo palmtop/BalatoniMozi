@@ -22,7 +22,7 @@
                         <td><%= movie.title %></td>
                         <td><%= movie.genreStr %></td>
                         <td><%= movie.release_date.substring(0,4) %></td>
-                        <td><button onclick="selectMovie('<%= movie.id %>','<%= movieTitle %>')">Select</button></td>
+                        <td><button onclick="selectMovie('<%= movie.id %>','<%= movieId %>')">Select</button></td>
                     </tr>
                 <% }); %>
             </tbody>
