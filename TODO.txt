@@ -1,4 +1,8 @@
-Kiválasztott film elmentése
+Filmes Oldal
+Mozi oldal
+Filmek szerkesztése
+Újműsor hozzáadása
 Admin felület ne kerüljön bele a production-ba
 Oldalak kinézetét még kell kicsit tuningolni
-Release date-ban van a korhatár, azt is le kell tölteni
+Release date-ban van a korhatár, azt is le kell tölteni, nem teljesen jó, ellenőrizni kell
+Kiválasztott film elmentése

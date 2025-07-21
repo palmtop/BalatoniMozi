@@ -38,7 +38,13 @@ app.get('/', (req, res) => {
   console.log(todayFormatted);
   console.log(twoWeeksLaterFormatted);
 
-  const sql = `SELECT date, theater, movie FROM movie_schedule WHERE date BETWEEN ? AND ? ORDER BY date`;
+  const sql = `
+    SELECT ms.date, ms.theater, m.name AS movie
+    FROM movie_schedule ms
+    JOIN movies m ON ms.movie_id = m.id
+    WHERE ms.date BETWEEN ? AND ?
+    ORDER BY ms.date
+  `;
   db.all(sql, [todayFormatted, twoWeeksLaterFormatted], (err, rows: MovieRow[]) => {
     if (err) {
       console.error(err.message);
@@ -64,13 +70,11 @@ app.get('/api', (req, res) => {
 
 app.get('/movie/:movieName', (req, res) => {
   const movieName = req.params.movieName;
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = (today.getMonth() + 1).toString().padStart(2, '0');
-  const day = today.getDate().toString().padStart(2, '0');
-  const todayFormatted = `${year}-${month}-${day}`;
 
-  const sql = `SELECT date, theater FROM movie_schedule WHERE movie = ? AND date >= ? ORDER BY date`;
+  
+  const todayFormatted = new Date().toISOString().split('T')[0];
+
+  const sql = `SELECT date, theater FROM movie_schedule WHERE movie_id = (select id from movies where name=?) AND date >= ? ORDER BY date`;
 
   type MovieScheduleRow = {
     date: string;

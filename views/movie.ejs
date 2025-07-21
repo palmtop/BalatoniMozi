@@ -64,30 +64,32 @@
         <% }); %>
     </ul>
   </div>
-  <div class="card" style="display: flex; align-items: flex-start;">
-    <img src="<%= 'https://image.tmdb.org/t/p/w342'+MovieDetails.poster_file %>" alt="Movie poster"
-      style="width: 342px; border-radius: 8px; margin-right: 1rem;">
-    <div>
-      <h2>Film részletek</h2>
-      <ul>
-        <li><strong>Név:</strong>
-          <%= MovieDetails.tmdb_name %>
-        </li>
-        <li><strong>Műfaj:</strong>
-          <%= MovieDetails.genre %>
-        </li>
-        <li><strong>Korhatár:</strong>
-          <%= MovieDetails.rating %>
-        </li>
-        <li><strong>Megjelenés éve:</strong>
-          <%= MovieDetails.year %>
-        </li>
-        <li><strong>Leírás:</strong>
-          <%= MovieDetails.summary %>
-        </li>
-      </ul>
+  <% if (MovieDetails.poster_file) { %>
+    <div class="card" style="display: flex; align-items: flex-start;">
+      <img src="<%= 'https://image.tmdb.org/t/p/w342'+MovieDetails.poster_file %>" alt="Movie poster"
+        style="width: 342px; border-radius: 8px; margin-right: 1rem;">
+      <div>
+        <h2>Film részletek</h2>
+        <ul>
+          <li><strong>Név:</strong>
+            <%= MovieDetails.tmdb_name %>
+          </li>
+          <li><strong>Műfaj:</strong>
+            <%= MovieDetails.genre %>
+          </li>
+          <li><strong>Korhatár:</strong>
+            <%= MovieDetails.rating %>
+          </li>
+          <li><strong>Megjelenés éve:</strong>
+            <%= MovieDetails.year %>
+          </li>
+          <li><strong>Leírás:</strong>
+            <%= MovieDetails.summary %>
+          </li>
+        </ul>
+      </div>
     </div>
-  </div>
+  <% } %>
 </body>
 
 </html>
